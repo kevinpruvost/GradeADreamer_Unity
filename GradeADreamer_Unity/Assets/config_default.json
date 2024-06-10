@@ -1,0 +1,7 @@
+{
+    "host": "localhost",
+    "port": 22000,
+    "username": "root",
+    "password": "root",
+    "pathToGradeADreamer": "/home/root/GradeADreamer"
+}
