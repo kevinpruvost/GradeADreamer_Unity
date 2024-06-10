@@ -88,6 +88,7 @@ public class GradeADreamerEditor : Editor
             if (GUILayout.Button("Disconnect from SSH Server"))
             {
                 sshManager.DisconnectFromSshServer();
+                sshManager.isConnected = false;
             }
         }
         else

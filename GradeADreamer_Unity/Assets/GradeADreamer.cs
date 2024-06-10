@@ -27,6 +27,8 @@ public class GradeADreamer : MonoBehaviour
     [HideInInspector]
     public string selectedDirectory = string.Empty;
 
+    public Camera camera;
+
     public class Config
     {
         public string host;
@@ -150,6 +152,83 @@ public class GradeADreamer : MonoBehaviour
         }
     }
 
+    private int downscaleFactor = 4;
+    Color GetDominantColor(Material mat)
+    {
+        Texture2D texture = mat.mainTexture as Texture2D;
+        Color32[] pixels = texture.GetPixels32();
+        int width = texture.width;
+        int height = texture.height;
+
+        // Downscale the texture to reduce the number of pixels to process
+        int downscaledWidth = width / downscaleFactor;
+        int downscaledHeight = height / downscaleFactor;
+        Color32[] downscaledPixels = new Color32[downscaledWidth * downscaledHeight];
+
+        for (int y = 0; y < downscaledHeight; y++)
+        {
+            for (int x = 0; x < downscaledWidth; x++)
+            {
+                downscaledPixels[y * downscaledWidth + x] = pixels[(y * downscaleFactor) * width + (x * downscaleFactor)];
+            }
+        }
+
+        // Count colors
+        Dictionary<Color32, int> colorCount = new Dictionary<Color32, int>();
+        foreach (Color32 pixel in downscaledPixels)
+        {
+            if (colorCount.ContainsKey(pixel))
+            {
+                colorCount[pixel]++;
+            }
+            else
+            {
+                colorCount[pixel] = 1;
+            }
+        }
+
+        // Find the most frequent color
+        Color32 dominantColor = new Color32();
+        int maxCount = 0;
+        foreach (var kvp in colorCount)
+        {
+            if (kvp.Value > maxCount)
+            {
+                maxCount = kvp.Value;
+                dominantColor = kvp.Key;
+            }
+        }
+
+        return dominantColor;
+    }
+
+    public static Color GetContrastingColor(Color color)
+    {
+        // Convert RGB to HSL
+        float h, s, l;
+        Color.RGBToHSV(color, out h, out s, out l);
+
+        // Rotate hue by 180 degrees
+        h = (h + 0.5f) % 1.0f;
+
+        // Convert HSL back to RGB
+        return Color.HSVToRGB(h, s, l);
+    }
+
+    public void SetNewBackground()
+    {
+        Material meshMaterial = gameObject.GetComponent<MeshRenderer>().sharedMaterial;
+
+        if (meshMaterial != null)
+        {
+            Color dominantColor = GetDominantColor(meshMaterial);
+            Color contrastingColor = GetContrastingColor(dominantColor);
+
+            camera.backgroundColor = contrastingColor;
+            Debug.Log($"Set skybox color to: {contrastingColor}");
+        }
+    }
+
     public void DownloadModel(string modelName)
     {
         if (string.IsNullOrEmpty(modelName))
@@ -175,6 +254,7 @@ public class GradeADreamer : MonoBehaviour
             {
                 Debug.Log("Operation cancelled by the user.");
                 ModelAssigner.AssignModel(localPath + "mesh", gameObject);
+                SetNewBackground();
                 return;
             }
 #endif
@@ -225,6 +305,7 @@ public class GradeADreamer : MonoBehaviour
                 EditorUtility.ClearProgressBar();
                 AssetDatabase.Refresh(); // Refresh the Unity Assets view
                 ModelAssigner.AssignModel(localPath + "mesh", gameObject);
+                SetNewBackground();
 #endif
             }
             else
