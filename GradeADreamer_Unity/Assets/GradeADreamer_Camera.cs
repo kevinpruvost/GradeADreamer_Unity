@@ -79,8 +79,8 @@ public class GradeADreamer_Camera : MonoBehaviour
         recorderController.StartRecording();
 
         Vector3 rotationAxis = Vector3.up; // Y-axis
-        float childRotationSpeed = 360f / duration * 0.25f; // Child rotates at 3/4 the speed
-        float parentRotationSpeed = 360f / duration * 0.75f; // Parent rotates at 1/4 the speed
+        float childRotationSpeed = 360f / duration * 0.0f; // Child rotates at 3/4 the speed
+        float parentRotationSpeed = 360f / duration * 1.00f; // Parent rotates at 1/4 the speed
 
         float elapsedTime = 0f;
 
